@@ -9,8 +9,8 @@ rng = np.random.RandomState(0)
 
 class linear_svm(object):
 
-    def __init__(self, alpha = 0.0001, C = 1, n = 122,
-                 mode = 'mini_batch', epoch = 50, batch_size = 20,
+    def __init__(self, alpha = 0.0001, C = 100, n = 122,
+                 mode = 'sgd', echo = 100, batch_size = 20,
                  criteria = 'accuracy'):
         # parameters
         self.alpha = alpha
@@ -20,7 +20,7 @@ class linear_svm(object):
         self.k = 0
         self.n = n
         self.mode = mode
-        self.epoch = epoch
+        self.echo = echo
         self.criteria = criteria
         
         if mode == 'mini_batch':
@@ -34,21 +34,23 @@ class linear_svm(object):
         b = self.b
         criteria = self.criteria
 
-        if criteria == 'logloss':
+        if criteria == 'loss':
             cost = 0
             for i, x in enumerate(train_data):
                 cost += C * max(0, 1 - y[i] * ((w * x).sum() + b))
 
             cost += 0.5 * (w ** 2).sum()
             self.k += 1
+            return cost
 
         if criteria == 'accuracy':
             cost = 0
             for i, x in enumerate(train_data):
-                if (y[i] * ((w * x).sum() + b) >= 1):
-                    cost += 1
-                else:
+                if (y[i] * ((w * x).sum() + b) >= 0):
                     continue
+                else:
+                    cost += 1
+            self.k += 1
                     
         return float(cost) / len(y)
 
@@ -156,7 +158,7 @@ class linear_svm(object):
 
     def train(self, train_data, y):
         n = self.n
-        epoch = self.epoch
+        echo = self.echo
         mode = self.mode
 
         if n != len(train_data[0]):
@@ -167,7 +169,7 @@ class linear_svm(object):
         if (mode == 'batch'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(epoch):
+            for i in range(echo):
                 self.update_batch(train_data, y)
                 currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
@@ -179,7 +181,7 @@ class linear_svm(object):
         if (mode == 'sgd'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(epoch):
+            for i in range(echo):
                 self.update_sgd(train_data, y)
                 currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
@@ -191,7 +193,7 @@ class linear_svm(object):
         if (mode == 'mini_batch'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(epoch):
+            for i in range(echo):
                 self.update_mini(train_data, y)
                 currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
