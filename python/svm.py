@@ -9,16 +9,16 @@ rng = np.random.RandomState(0)
 
 class linear_svm(object):
 
-    def __init__(self, alpha = 0.0001, C = 1, features = 122,
+    def __init__(self, alpha = 0.0001, C = 1, n = 122,
                  mode = 'mini_batch', epoch = 50, batch_size = 20,
                  criteria = 'accuracy'):
         # parameters
         self.alpha = alpha
         self.C = C
-        self.w = (rng.rand(features) - .5)
+        self.w = (rng.rand(n) - .5)
         self.b = rng.rand() - .5
         self.k = 0
-        self.features = features
+        self.n = n
         self.mode = mode
         self.epoch = epoch
         self.criteria = criteria
@@ -34,23 +34,32 @@ class linear_svm(object):
         b = self.b
         criteria = self.criteria
 
-        cost = 0
-        for i, x in enumerate(train_data):
-            cost += C * max(0, 1 - y[i] * ((w * x).sum() + b))
+        if criteria == 'logloss':
+            cost = 0
+            for i, x in enumerate(train_data):
+                cost += C * max(0, 1 - y[i] * ((w * x).sum() + b))
 
-        cost += 0.5 * (w ** 2).sum()
-        self.k += 1
-        
-        return cost / len(y)
+            cost += 0.5 * (w ** 2).sum()
+            self.k += 1
+
+        if criteria == 'accuracy':
+            cost = 0
+            for i, x in enumerate(train_data):
+                if (y[i] * ((w * x).sum() + b) >= 1):
+                    cost += 1
+                else:
+                    continue
+                    
+        return float(cost) / len(y)
 
     def update_batch(self, train_data, y):
-        features = self.features
+        n = self.n
         C = self.C
         alpha = self.alpha
         w = self.w
         b = self.b
 
-        for j in range(features):
+        for j in range(n):
             gradient = 0
             for i, x in enumerate(train_data):
                 if (y[i] * ((w * x).sum() + b) >= 1):
@@ -68,7 +77,7 @@ class linear_svm(object):
         b -= alpha * (C * gradient)
 
     def update_sgd(self, train_data, y):
-        features = self.features
+        n = self.n
         C = self.C
         alpha = self.alpha
         w = self.w
@@ -91,7 +100,7 @@ class linear_svm(object):
             x = row[0 : -1]
             y = row[-1]
             
-            for j in range(features):
+            for j in range(n):
                 if (y * ((w * x).sum() + b) >= 1):
                     gradient = 0
                 else:
@@ -105,7 +114,7 @@ class linear_svm(object):
             b -= alpha * (C * gradient)
 
     def update_mini(self, train_data, y):
-        features = self.features
+        n = self.n
         C = self.C
         alpha = self.alpha
         w = self.w
@@ -128,29 +137,29 @@ class linear_svm(object):
 
             x = row[0 : -1]
             y = row[-1]
-            gradient = [0] * features
+            gradient = [0] * n
             g = 0
 
             if (y * ((w * x).sum() + b) >= 1):
                 gradient = gradient
             else:
-                for j in range(features):
+                for j in range(n):
                     gradient[j] -= y * x[j]
                 g -= y
             
             if (i + 1) % batch_size == 0 or i == (len(whole_data) - 1):
-                for j in range(features):
+                for j in range(n):
                     w[j] -= alpha * (w[j] + C * gradient[j])
                 b -= alpha * (C * g)
 
         
 
     def train(self, train_data, y):
-        features = self.features
+        n = self.n
         epoch = self.epoch
         mode = self.mode
 
-        if features != len(train_data[0]):
+        if n != len(train_data[0]):
             print "Error: number of features not correct(should be " + \
                   str(len(train_data[0])) + ")"
             sys.exit()
