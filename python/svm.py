@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pandas as pd
 from math import exp, log, sqrt, fabs
@@ -9,7 +10,8 @@ rng = np.random.RandomState(0)
 class linear_svm(object):
 
     def __init__(self, alpha = 0.0001, C = 1, features = 122,
-                 mode = 'mini_batch', echo = 50, batch_size = 20):
+                 mode = 'mini_batch', epoch = 50, batch_size = 20,
+                 criteria = 'accuracy'):
         # parameters
         self.alpha = alpha
         self.C = C
@@ -18,7 +20,9 @@ class linear_svm(object):
         self.k = 0
         self.features = features
         self.mode = mode
-        self.echo = echo
+        self.epoch = epoch
+        self.criteria = criteria
+        
         if mode == 'mini_batch':
             self.batch_size = batch_size
         elif batch_size != 20:
@@ -28,6 +32,7 @@ class linear_svm(object):
         C = self.C
         w = self.w
         b = self.b
+        criteria = self.criteria
 
         cost = 0
         for i, x in enumerate(train_data):
@@ -44,7 +49,7 @@ class linear_svm(object):
         alpha = self.alpha
         w = self.w
         b = self.b
-        
+
         for j in range(features):
             gradient = 0
             for i, x in enumerate(train_data):
@@ -69,7 +74,16 @@ class linear_svm(object):
         w = self.w
         b = self.b
 
-        whole_data = np.hstack([train_data, y])
+        try:
+            whole_data = np.hstack([train_data, y])
+        except:
+            rows = []
+            for i in y:
+                row = [i]
+                rows.append(row)
+            y = np.array(rows)
+            whole_data = np.hstack([train_data, y])
+            
         np.random.shuffle(whole_data)
         
         for i, row in enumerate(whole_data):
@@ -98,7 +112,16 @@ class linear_svm(object):
         b = self.b
         batch_size = self.batch_size
 
-        whole_data = np.hstack([train_data, y])
+        try:
+            whole_data = np.hstack([train_data, y])
+        except:
+            rows = []
+            for i in y:
+                row = [i]
+                rows.append(row)
+            y = np.array(rows)
+            whole_data = np.hstack([train_data, y])
+            
         np.random.shuffle(whole_data)
 
         for i, row in enumerate(whole_data):
@@ -123,44 +146,50 @@ class linear_svm(object):
         
 
     def train(self, train_data, y):
-        echo = self.echo
+        features = self.features
+        epoch = self.epoch
         mode = self.mode
-        
+
+        if features != len(train_data[0]):
+            print "Error: number of features not correct(should be " + \
+                  str(len(train_data[0])) + ")"
+            sys.exit()
+            
         if (mode == 'batch'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(echo):
-                learner.update_batch(train_data, y)
-                currentCost = learner.loss(train_data, y)
+            for i in range(epoch):
+                self.update_batch(train_data, y)
+                currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
                 lastCost = currentCost
-                print "echo: " + str(learner.k) + "     ",
-                print "Current Cost: " + str(currentCost[0]) + \
-                "       " + "Improvement: " + str(improve[0])
+                print "echo: " + str(self.k) + "     ",
+                print "Current Cost: " + str(currentCost) + \
+                "       " + "Improvement: " + str(improve)
 
         if (mode == 'sgd'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(echo):
-                learner.update_sgd(train_data, y)
-                currentCost = learner.loss(train_data, y)
+            for i in range(epoch):
+                self.update_sgd(train_data, y)
+                currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
                 lastCost = currentCost
-                print "echo: " + str(learner.k) + "     ",
-                print "Current Cost: " + str(currentCost[0]) + \
-                "       " + "Improvement: " + str(improve[0])
+                print "echo: " + str(self.k) + "     ",
+                print "Current Cost: " + str(currentCost) + \
+                "       " + "Improvement: " + str(improve)
 
         if (mode == 'mini_batch'):
             lastCost = 2.0
             improve = 1.0
-            for i in range(echo):
-                learner.update_mini(train_data, y)
-                currentCost = learner.loss(train_data, y)
+            for i in range(epoch):
+                self.update_mini(train_data, y)
+                currentCost = self.loss(train_data, y)
                 improve = lastCost - currentCost
                 lastCost = currentCost
-                print "echo: " + str(learner.k) + "     ",
-                print "Current Cost: " + str(currentCost[0]) + \
-                "       " + "Improvement: " + str(improve[0])
+                print "echo: " + str(self.k) + "     ",
+                print "Current Cost: " + str(currentCost) + \
+                "       " + "Improvement: " + str(improve)
 
         
 if __name__ == '__main__':
