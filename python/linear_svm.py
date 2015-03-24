@@ -4,18 +4,7 @@ from math import exp, log, sqrt, fabs
 import math
 import random
 
-train_df = pd.read_csv(r'features.train.txt', header = 1)
-test_df = pd.read_csv(r'features.test.txt', header = 1)
-y_df = pd.read_csv(r'target.train.txt', header = 1)
-yt_df = pd.read_csv(r'target.test.txt', header = 1)
-
-train_data = train_df.values
-y = y_df.values
-test_data = test_df.values
-yt = yt_df.values
-
 rng = np.random.RandomState(0)
-e_batch = 0.25
 
 class linear_svm(object):
 
@@ -175,5 +164,14 @@ class linear_svm(object):
 
         
 if __name__ == '__main__':
+    train_df = pd.read_csv(r'features.train.txt', header = 1)
+    test_df = pd.read_csv(r'features.test.txt', header = 1)
+    y_df = pd.read_csv(r'target.train.txt', header = 1)
+    yt_df = pd.read_csv(r'target.test.txt', header = 1)
+
+    train_data = train_df.values
+    y = y_df.values
+    test_data = test_df.values
+    yt = yt_df.values
     learner = linear_svm()
     learner.train(train_data, y)
