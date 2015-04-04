@@ -1,17 +1,13 @@
 from itertools import *
 import pandas as pd
 from numpy import *
-
-filename = "/home/yejiming/桌面/Kaggle/OttoGroup/train.csv"
-df = pd.read_csv(filename, header = 0)
-y = df.target.values
-df = df.drop(['target', 'id'], axis = 1)
-data = df.values
+import random
 
 class TreeNode(object):
-    def __init__(self, feat, val, left = 0, right = 0):
+    def __init__(self, feat, val, mc, left = 0, right = 0):
         self.feature = feat
         self.value = val
+        self.maxClass = mc
         self.left = left
         self.right = right
 
@@ -29,7 +25,7 @@ class BTree(object):
     def preOrder(self, treenode):
         if isinstance(treenode, str) or isinstance(treenode, int):
             return treenode
-        print treenode.feature, treenode.value
+        print treenode.feature, treenode.value, treenode.maxClass
         self.preOrder(treenode.left)
         self.preOrder(treenode.right)
         
@@ -37,7 +33,7 @@ class BTree(object):
         if isinstance(treenode, str) or isinstance(treenode, int):
             return treenode
         self.inOrder(treenode.left)
-        print treenode.feature, treenode.value
+        print treenode.feature, treenode.value, treenode.maxClass
         self.inOrder(treenode.right)
         
     def postOrder(self, treenode):
@@ -45,15 +41,36 @@ class BTree(object):
             return treenode
         self.postOrder(treenode.left)
         self.postOrder(treenode.right)
-        print treenode.feature, treenode.value
+        print treenode.feature, treenode.value, treenode.maxClass
+
+    def getNumLeafs(self, treenode):
+        numLeafs = 0
+        if treenode.left == 0 and treenode.right == 0:
+            numLeafs += 1
+        else:
+            numLeafs += self.getNumLeafs(treenode.left)
+            numLeafs += self.getNumLeafs(treenode.right)
+        return numLeafs
+
+    def getClass(self, x, treenode):
+        if treenode.left == 0 and treenode.right == 0:
+            return treenode.maxClass
+        else:
+            if x[treenode.feature] > treenode.value:
+                return self.getClass(x, treenode.right)
+            else:
+                return self.getClass(x, treenode.left)
 
         
 class cart(object):
 
-    def __init__(self, tol = 0.01, leastSample = 10):
+    def __init__(self, tol = 0.0001, leastSample = 1,
+                 maxDepth = inf, merge = True):
         self.tol = tol
         self.leastSample = leastSample
         self.tree = BTree()
+        self.maxDepth = maxDepth
+        self.merge = merge
     
     def loadData(self, data):
         dataMat = []
@@ -90,7 +107,7 @@ class cart(object):
         tol = self.tol
         leastSample = self.leastSample
         if len(set(y)) == 1:
-            return None, y[0]
+            return None, None, y[0]
         m, n = shape(data)
         S = self.gini(y)
         bestS = inf; bestIndex = 0; bestValue = 0
@@ -114,78 +131,120 @@ class cart(object):
                     bestS = newS
                 lastnewS = newS
         if (S - bestS) < tol:
-            return None, self.classify(y)
+            return None, None, self.classify(y)
         mat0, y0, mat1, y1 = self.binSplitDataSet(data, y, bestIndex, bestValue)
         if (shape(mat0)[0] < leastSample) or (shape(mat1)[0] < leastSample):
-            return None, self.classify(y)
-        return bestIndex, bestValue
+            return None, None, self.classify(y)
+        return bestIndex, bestValue, self.classify(y)
         
     def createTree(self, data, y, tol, leastSample, depth = 0):
         tol = self.tol
         leastSample = self.leastSample
-        retTree = TreeNode(-1, -1)
-        if depth >= 10:
-            retTree.value = self.classify(y)
+        retTree = TreeNode(-1, -1, -1)
+        if depth >= self.maxDepth:
+            retTree.feature = None
+            retTree.value = None
+            retTree.maxClass = self.classify(y)
             return retTree
-        feat, val = self.chooseBestSplit(data, y, tol, leastSample)
+        feat, val, mc = self.chooseBestSplit(data, y, tol, leastSample)
         if feat == None:
-            retTree.value = val
+            retTree.feature = None
+            retTree.value = None
+            retTree.maxClass = mc
             return retTree
         retTree.feature = feat
         retTree.value = val
+        retTree.maxClass = mc
         left, yleft, right, yright = self.binSplitDataSet(data, y, feat, val)
         retTree.left = self.createTree(left, yleft, tol, leastSample, depth + 1)
         retTree.right = self.createTree(right, yright, tol, leastSample, depth + 1)
         return retTree
 
-    def featuresplit(features):   
-        count = len(features)   
-        featureind = range(count)   
-        featureind.pop(0) #get value 1~(count-1)  
-        combiList = []   
-        for i in featureind:   
-            com = list(combinations(features, len(features[0:i])))   
-            combiList.extend(com)   
-        combiLen = len(combiList)
-        featuresplitGroup = zip(combiList[0:combiLen/2], combiList[combiLen-1:combiLen/2-1:-1])   
-        return featuresplitGroup
-
-    def splitDataSet(dataSet, axis, valueTuple):   
-        '''return dataset satisfy condition dataSet[i][axis] == valueTuple, 
-        and remove dataSet[i][axis] if len(valueTuple)==1'''  
-        retDataSet = []   
-        length = len(valueTuple)   
-        if length ==1:   
-          for featVec in dataSet:   
-            if featVec[axis] == valueTuple[0]:   
-                reducedFeatVec = featVec[:axis]     #chop out axis used for splitting  
-                reducedFeatVec.extend(featVec[axis+1:])   
-                retDataSet.append(reducedFeatVec)   
-        else:   
-          for featVec in dataSet:   
-            if featVec[axis] in valueTuple:   
-                retDataSet.append(featVec)   
-        return retDataSet
-
     def binSplitDataSet(self, data, y, feature, value):
-        determine = data[:,feature] > value
+        determine = data[:,feature] <= value
         mat0 = data[determine]  
         mat1 = data[determine == False]
         y0 = y[determine]
         y1 = y[determine == False]
         return mat0, y0, mat1, y1
 
-    def fit(self, data, y):
+    def train(self, data, y):
         tol = self.tol
         leastSample = self.leastSample
-
+        length = len(y)
         data = self.loadData(data)
+        train = data[:(length/5)*4]
+        test = data[(length/5)*4:]
+        ytrain = y[:(length/5)*4]
+        ytest = y[(length/5)*4:]
         root = self.createTree(data, y, tol, leastSample)
+        if self.merge:
+            root = self.prune(root, test, ytest)
         self.tree = BTree(root)
-        
-        
 
-if __name__ == '__main__':   
-    t = cart()
-    t.fit(data, y)
+    def correctNum(self, y, y_pred):
+        ret = 0
+        for t, i in enumerate(y):
+            if i == y_pred[t]:
+                ret += 1
+        return ret
+
+    def isLeaf(self, treenode):
+        return (treenode.feature == None)
+
+    def prune(self, treenode, test, ytest):
+        if not self.isLeaf(treenode.left) or not self.isLeaf(treenode.right):
+            left, yleft, right, yright = self.binSplitDataSet(test, ytest,
+                                            treenode.feature, treenode.value)
+        if not self.isLeaf(treenode.left):
+            treenode.left = self.prune(treenode.left, left, yleft)
+        if not self.isLeaf(treenode.right):
+            treenode.right = self.prune(treenode.right, right, yright)
+        if self.isLeaf(treenode.left) and self.isLeaf(treenode.right):
+            left, yleft, right, yright = self.binSplitDataSet(test, ytest,
+                                            treenode.feature, treenode.value)
+            yleft_pred = [treenode.left.maxClass] * len(yleft)
+            yright_pred = [treenode.right.maxClass] * len(yright)
+            correctNoMerge = self.correctNum(yleft_pred, yleft) + \
+                           self.correctNum(yright_pred, yright)
+            y_pred = [treenode.maxClass] * len(ytest)
+            correctMerge = self.correctNum(y_pred, ytest)
+            if correctMerge > correctNoMerge:
+                print "Merging"
+                treenode.feature = None
+                treenode.value = None
+                treenode.left = 0
+                treenode.right = 0
+                return treenode
+            else:
+                return treenode
+        return treenode
+
+    def predict(self, data):
+        bt = self.tree
+        ret = []
+        for x in data:
+            y_pred = bt.getClass(x, bt.root)
+            ret.append(y_pred)
+        return ret
+
+    def score(self, data, y):
+        y_pred = self.predict(data)
+        return float(self.correctNum(y, y_pred)) / len(y)
+        
+        
+if __name__ == '__main__':
+    filename = "/home/yejiming/桌面/Kaggle/OttoGroup/train.csv"
+    df = pd.read_csv(filename, header = 0)
+    df = df.drop(['id'], axis = 1)
+    data = df.values
+    random.shuffle(data)
+    y = data[:, -1]
+    data = data[:, 0:-1]
+    train = data[0:50000]
+    ytrain = y[0:50000]
+    test = data[50000:60000]
+    ytest = y[50000:60000]
+    learner = cart()
+    learner.train(train, ytrain)
     
