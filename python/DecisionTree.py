@@ -2,6 +2,7 @@ from itertools import *
 import pandas as pd
 from numpy import *
 import random
+from math import sqrt
 
 class TreeNode(object):
     def __init__(self, feat, val, mc, left = 0, right = 0):
@@ -65,7 +66,7 @@ class BTree(object):
 class cart(object):
 
     def __init__(self, tol = 0.0001, leastSample = 1,
-                 maxDepth = inf, merge = True):
+                 maxDepth = inf, merge = None):
         self.tol = tol
         self.leastSample = leastSample
         self.tree = BTree()
@@ -173,13 +174,19 @@ class cart(object):
         leastSample = self.leastSample
         length = len(y)
         data = self.loadData(data)
-        train = data[:(length/5)*4]
-        test = data[(length/5)*4:]
-        ytrain = y[:(length/5)*4]
-        ytest = y[(length/5)*4:]
-        root = self.createTree(data, y, tol, leastSample)
-        if self.merge:
+        train = data[:(length/10)*9]
+        test = data[(length/10)*9:]
+        ytrain = y[:(length/10)*9]
+        ytest = y[(length/10)*9:]
+        if self.merge == 'pep':
+            root = self.createTree(data, y, tol, leastSample)
+            self.tree = BTree(root)
+            root = self.prune_pep(root, data, y)
+        if self.merge == 'rep':
+            root = self.createTree(train, ytrain, tol, leastSample)
             root = self.prune(root, test, ytest)
+        if self.merge == None:
+            root = self.createTree(data, y, tol, leastSample)
         self.tree = BTree(root)
 
     def correctNum(self, y, y_pred):
@@ -219,6 +226,30 @@ class cart(object):
             else:
                 return treenode
         return treenode
+
+    def prune_pep(self, treenode, data, y):
+        if self.isLeaf(treenode):
+            return treenode
+        numLeafs = self.tree.getNumLeafs(treenode)
+        errorNoMerge = (1 - self.score(data, y)) * len(y) + 0.5 * numLeafs
+        varNoMerge = sqrt(errorNoMerge * (1 - errorNoMerge / float(len(y))))
+        y_pred = [treenode.maxClass] * len(y)
+        errorMerge = len(y) - self.correctNum(y_pred, y) + 0.5
+        if errorMerge < errorNoMerge + sqrt(varNoMerge):
+            print "Merging"
+            treenode.feature = None
+            treenode.value = None
+            treenode.left = 0
+            treenode.right = 0
+            return treenode
+        else:
+            left, yleft, right, yright = self.binSplitDataSet(data, y,
+                                            treenode.feature, treenode.value)
+            if not self.isLeaf(treenode.left):
+                treenode.left = self.prune_pep(treenode.left, left, yleft)
+            if not self.isLeaf(treenode.right):
+                treenode.right = self.prune_pep(treenode.right, right, yright)
+            return treenode
 
     def predict(self, data):
         bt = self.tree
