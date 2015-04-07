@@ -7,10 +7,32 @@ import random
 
 rng = np.random.RandomState(0)
 
+def loadData(data, y):
+    dataMat = []
+    
+    for t, row in enumerate(data):
+        fltRow = map(float, row)
+        dataMat.append(fltRow)
+        
+    dataMat = np.array(dataMat)
+    y0 = y[0]
+    
+    for t, i in enumerate(y):
+        
+        if i == y0:
+            y[t] = 1
+        else:
+            
+            y[t] = -1
+            
+    y = np.array(y).transpose()
+    return dataMat, y
+
+
 class linear_svm(object):
 
-    def __init__(self, alpha = 0.0001, C = 100, n = 122,
-                 mode = 'sgd', echo = 100, batch_size = 20,
+    def __init__(self, alpha = 0.0005, C = 1.0, n = 93,
+                 mode = 'batch', echo = 100, batch_size = 20,
                  criteria = 'accuracy'):
         # parameters
         self.alpha = alpha
@@ -156,7 +178,8 @@ class linear_svm(object):
 
         
 
-    def train(self, train_data, y):
+    def train(self, data, y):
+        train_data, y = loadData(data, y)
         n = self.n
         echo = self.echo
         mode = self.mode
@@ -202,16 +225,44 @@ class linear_svm(object):
                 print "Current Cost: " + str(currentCost) + \
                 "       " + "Improvement: " + str(improve)
 
+    def predict(self, data):
+        w = self.w
+        b = self.b
+
+        ret = []
+        for x in data:
+            calc = (w * x).sum() + b
+            if calc >= 0:
+                ret.append(1)
+            else:
+                ret.append(-1)
+        return ret
+
+    def score(self, test_data, ytest):
+        test_data, ytest = loadData(test_data, ytest)
+        w = self.w
+        b = self.b
+
+        ret = 0
+        for i, x in enumerate(test_data):
+            if (ytest[i] * ((w * x).sum() + b) >= 0):
+                ret += 1
+        return float(ret)/len(ytest)
+
         
 if __name__ == '__main__':
-    train_df = pd.read_csv(r'features.train.txt', header = 1)
-    test_df = pd.read_csv(r'features.test.txt', header = 1)
-    y_df = pd.read_csv(r'target.train.txt', header = 1)
-    yt_df = pd.read_csv(r'target.test.txt', header = 1)
-
-    train_data = train_df.values
-    y = y_df.values
-    test_data = test_df.values
-    yt = yt_df.values
+    filename = "/home/yejiming/桌面/Kaggle/OttoGroup/train.csv"
+    df = pd.read_csv(filename, header = 0)
+    df = df.drop(['id'], axis = 1)
+    data = df.values
+    data = data[10000:26000]
+    np.random.shuffle(data)
+    y = data[0:200, -1]
+    data = data[0:200, 0:-1]
+    train = data[0:100]
+    ytrain = y[0:100]
+    test = data[100:200]
+    ytest = y[100:200]
     learner = linear_svm()
-    learner.train(train_data, y)
+    learner.train(train, ytrain)
+    score = learner.score(test, ytest)
