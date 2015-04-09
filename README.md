@@ -1,3 +1,2 @@
 # ML_Algorithms
-实现各种机器学习算法，大部分使用在线学习的方式
-目前仅有python的实现版本，未来将添加在spark和MapReduce上的实现
+Welcome
