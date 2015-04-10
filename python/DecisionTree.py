@@ -273,7 +273,7 @@ class cart(object):
         for t, i in enumerate(y):
             if i == y_pred[t]:
                 ret += 1
-                
+        print ret
         return ret
 
     def isLeaf(self, treenode):
@@ -322,7 +322,7 @@ class cart(object):
         y_pred = [treenode.maxClass] * len(y)
         errorMerge = len(y) - self.correctNum(y_pred, y) + 0.5
         
-        if errorMerge < errorNoMerge + sqrt(varNoMerge):
+        if errorMerge < errorNoMerge + varNoMerge:
             treenode.feature = None
             treenode.value = None
             treenode.left = 0
