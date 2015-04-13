@@ -3,11 +3,7 @@ package RandomForest;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class util {
 	
@@ -109,5 +105,57 @@ public class util {
 		ret.add(dataTrain);
 		ret.add(yTrain);
 		return ret;
+	}
+	
+	public static int argmax(double[] row) {
+		int maxId = 0;
+		double max = row[0];
+		
+		for (int i = 1; i < row.length; i++) {
+			double tmp = row[i];
+			if (tmp > max) {
+				max = tmp;
+				maxId = i;
+			}
+		}
+		
+		return maxId;
+	}
+	
+	public static double multiLogLoss(List<double[]> yPred, List<String> yTrue, double eps) {
+		List<String> targetList = new ArrayList<String>();
+		Set<String> targetSet = new HashSet<String>(yTrue);
+		targetList = new ArrayList<String>(targetSet);
+		Collections.sort(targetList);
+		
+		for (int i = 0; i < yPred.size(); i++) {
+			double sum = 0.0;
+			for (int j = 0; j < yPred.get(i).length; j++) {
+				if (yPred.get(i)[j] < eps)
+					yPred.get(i)[j] = eps;
+				else if (yPred.get(i)[j] > 1 - eps)
+					yPred.get(i)[j] = 1 - eps;
+				sum += yPred.get(i)[j];
+			}
+			
+			for (int j = 0; j < yPred.get(i).length; j++) {
+				yPred.get(i)[j] /= sum;
+			}
+		}
+		
+		int nFactors = yPred.get(0).length;
+		int nSamples = yPred.size();
+		double vectSum = 0.0;
+		
+		for (int i = 0; i < nSamples; i++) {
+			double[] current = new double[nFactors];
+			int index = targetList.indexOf(yTrue.get(i));
+			current[index] = 1.0;
+			for (int j = 0; j < nFactors; j++) {
+				vectSum += current[j] * Math.log(yPred.get(i)[j]);
+			}
+		}
+		
+		return -1.0 / nSamples * vectSum;
 	}
 }
