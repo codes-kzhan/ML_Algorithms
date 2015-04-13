@@ -8,11 +8,12 @@ import static RandomForest.util.*;
 
 public class RandomForest {
 	
-	int n_estimators = 10;
+	int n_estimators = 100;
 	int max_depth = 999;
 	int max_features = 10;
 	String criteria = "None";
 	List<DecisionTree> forest = new ArrayList<DecisionTree>();
+	List<String> targetList = new ArrayList<String>();
 	
 	public RandomForest() {
 		for (int i = 0; i < n_estimators; i++) {
@@ -34,6 +35,9 @@ public class RandomForest {
 	}
 	
 	public void train(List<double[]> data, List<String> y) {
+		Set<String> targetSet = new HashSet<String>(y);
+		targetList = new ArrayList<String>(targetSet);
+		Collections.sort(targetList);
 		
 		for (int i = 0; i < n_estimators; i++) {
 			List retList = bootstrap(data, y);
@@ -68,6 +72,30 @@ public class RandomForest {
 		
 		return ret;
 	}
+	
+	public List<String> predict(List<double[]> data) {
+		List<String> ret = new ArrayList<String>();
+		List<double[]> retProba = predictProba(data);
+		
+		for (double[] tmp : retProba) {
+			int index = argmax(tmp);
+			ret.add(targetList.get(index));
+		}
+		
+		return ret;
+	}
+	
+	public double score(List<double[]> data, List<String> y) {
+		List<String> yPred = new ArrayList<String>();
+		yPred = predict(data);
+		return correctNum(y, yPred) / ( (double) y.size() );
+	}
+	
+	public double logLoss(List<double[]> data, List<String> y) {
+		List<double[]> yPred = new ArrayList<double[]>();
+		yPred = predictProba(data);
+		return multiLogLoss(yPred, y, 1E-15);
+	}
 
 	public static void main(String[] args) throws IOException {
 		String filename = "/home/yejiming/desktop/python/ML_Algorithms/dataset.csv";
@@ -93,9 +121,9 @@ public class RandomForest {
 		
 		RandomForest rf = new RandomForest();
 		rf.train(train, ytrain);
-		List<double[]> yp = rf.predictProba(test);
-		double[] p = yp.get(9999);
-		for (double i : p)
-			System.out.println(i);
+		double s = rf.score(test, ytest);
+		System.out.println(s);
+		double loss = rf.logLoss(test, ytest);
+		System.out.println(loss);
 	}
 }
