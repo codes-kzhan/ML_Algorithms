@@ -1,8 +1,6 @@
 package RandomForest;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class util {
@@ -43,6 +41,34 @@ public class util {
 				ret += 1;
 		}
 		
+		return ret;
+	}
+	
+	public static List loadTest(String filename) throws IOException {
+		BufferedReader in = new BufferedReader(new FileReader(filename));
+		in.readLine();
+		String line;
+		StringBuilder sb = new StringBuilder();
+		List<String> ids = new ArrayList<String>();
+		List<double[]> features = new ArrayList<double[]>();
+		
+		while ((line = in.readLine()) != null) {
+			String item[] = line.split(",");
+			int length = item.length - 1;
+			String first = item[0];
+			ids.add(first);
+			double feat[] = new double[length];
+			
+			for (int i = 0; i < length; i++) {
+				feat[i] = Double.parseDouble(item[i + 1]);
+			}
+			
+			features.add(feat);
+		}
+		
+		List ret = new ArrayList();
+		ret.add(features);
+		ret.add(ids);
 		return ret;
 	}
 	
@@ -157,5 +183,26 @@ public class util {
 		}
 		
 		return -1.0 / nSamples * vectSum;
+	}
+	
+	public static void submit(List<double[]> yPred, List<String> ids, String filename) throws IOException {
+		File file = new File(filename);
+		FileOutputStream fs = new FileOutputStream(file);
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fs));
+		bw.write("id,class_1,class_2,class_3,class_4,class_5,class_6,class_7,class_8,class_9\n");
+		
+		for (int i = 0; i < yPred.size(); i++) {
+			String prediction = "";
+			double[] row = yPred.get(i);
+			for (int j = 0; j < row.length; j++) {
+				prediction += row[j];
+				if (j == row.length - 1)
+					prediction += "\n";
+				else
+					prediction += ",";
+			}
+			bw.write(ids.get(i) + "," + prediction);
+		}
+		bw.flush();
 	}
 }
