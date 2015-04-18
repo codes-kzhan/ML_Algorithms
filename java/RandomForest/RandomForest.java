@@ -102,28 +102,15 @@ public class RandomForest {
 		List ret = loadData(filename);
 		List<double[]> data = (List<double[]>) ret.get(0);
 		List<String> y = (List<String>) ret.get(1);
-		List<String> ytrain = new ArrayList<String>();
-		List<double[]> train = new ArrayList<double[]>();
-		List<String> ytest = new ArrayList<String>();
-		List<double[]> test = new ArrayList<double[]>();
-		
-		for (int i = 0; i < data.size(); i ++) {
-			if (i < 50000) {
-				train.add(data.get(i));
-				ytrain.add(y.get(i));
-			}
-			
-			else {
-				test.add(data.get(i));
-				ytest.add(y.get(i));
-			}
-		}
+		String testfile = "/home/yejiming/desktop/Kaggle/OttoGroup/test.csv";
+		List ret2 = loadTest(testfile);
+		List<double[]> dataTest = (List<double[]>) ret2.get(0);
+		List<String> ids = (List<String>) ret2.get(1);
 		
 		RandomForest rf = new RandomForest();
-		rf.train(train, ytrain);
-		double s = rf.score(test, ytest);
-		System.out.println(s);
-		double loss = rf.logLoss(test, ytest);
-		System.out.println(loss);
+		rf.train(data, y);
+		List<double[]> yPred = rf.predictProba(dataTest);
+		String submission = "/home/yejiming/desktop/Kaggle/OttoGroup/rf_submission.csv";
+		submit(yPred, ids, submission);
 	}
 }
