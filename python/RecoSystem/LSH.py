@@ -1,51 +1,11 @@
 import numpy as np
+import csv
 from collections import defaultdict
 import scipy.spatial
 import doctest
 
 
 class CosineNN(object):
-    """
-    Nearest neighbours data structure using cosine distance metric.
-    vector m is a neighbour of vector n if the angle between m and n is less
-    than a.
-    We are querying for neighbours of n. m is an arbitrary element in the space
-    S. Let the result set R := query(n). We want to know:
-    - Precision (if m in R, how likely is it that m is a neighbour?)
-    - Recall (if m is a neighbour, how likely is it that m in R?)
-    P(m is neighbour) = a/pi
-    P(m in R) = P(any block in m matches the corresponding block in n)
-    P(a given block matches) = (1-a/pi)^BLOCK_SIZE
-    P(m in resultset | m is neighbour)
-            = P(any block in m matches)
-            = 1 - P(no blocks match)
-            = 1 - (1 - P(given block matches))^NUM_BLOCKS
-            = 1 - (1 - (1-a/pi)^BLOCK_SIZE)^NUM_BLOCKS
-    Initial LSH has sensitivity:
-    (pi/3, pi/2, 1-1/3, 1-1/2) = (pi/3, pi/2, .66, .50)
-    Applying blocks of 4-bits, we get
-    (pi/3, pi/2,( 1-1/3)^4, (1-1/2)^4) = (pi/3, pi/2, .20, 0.06)
-    Applying a union over 6 blocks, we get
-    (pi/3, pi/2, 1-(1-(1-1/3)^4)^6, 1-(1-(1-1/2)^4)^6) = (.., .73, 0.32)
-    Using block size 9 with 65 blocks, we get good values
-    In [31]: 1-(1-(1-1/3.0)**9)**65, 1-(1-(1-1/2.0)**9)**65
-    Out[31]: (0.819708249125523, 0.11933437406869052)
-    i.e. a (pi/3, pi/2, 0.82, 0.12)-sensitive hash family.
-    There's a >=0.82 chance of neighbours being in the result set,
-    and a <=0.12 chance of non-neighbours being in the result set.
-    OR gate of AND gates:
-    a = k
-    o = l
-    p = probability that 1 pair of bits match = 1 - angle/pi
-    p(block of length a matches all)    = p^a
-    p(block of length o matches once)   = 1-(doesn't match all)
-                                        = 1 - P(doesn't match once)^o
-                                        = 1 - (1-p)^o
-    OR gate of AND gates:
-        1 - (1 - (1-1/3.0)**a)**o, 1 - (1 - (1 - 1/2.0)**a)**o
-    a,o = 7,60
-    Out[78]: (0.9731803062239186, 0.37536677884638525)
-    """
 
     BLOCK_SIZE, NUM_BLOCKS = 16, 500
     SIG_LENGTH = BLOCK_SIZE * NUM_BLOCKS
@@ -53,12 +13,7 @@ class CosineNN(object):
     def __init__(self, vector_len):
         self.col_vecs = {}
         self.signatures = {}
-
-        # CosineNN.SIG_LENGTH * vector_len matrix where each column is a vector
-        # corresponding to a random hyperplane in the family. All entries are in
-        # [-0.5, 0.5).
-        self.random_vector_family = np.matrix(
-            np.random.rand(CosineNN.SIG_LENGTH, vector_len) - 0.5)
+        self.random_vector_family = read_hash_family()
 
         # nn_index[(which_block, block_integer_value)] = list of m-ids in bucket
         self.nn_index = defaultdict(list)
@@ -79,12 +34,6 @@ class CosineNN(object):
             self.nn_index[(block_num, block_val)].append(iid)
 
     def query(self, iid):
-        """
-        Get approximate nearest neighbours for item with id iid.
-        Time complexity of this function is slightly weird. It's something like
-        O(p_2*M + p_1*result) with plenty of overhead, where p_1, p_2 are the
-        probability values of the (d_1, d_2, p_1, p_2) hash family in use.
-        """
         sig = self.signatures[iid]
         resultset = set()
         for block_num in range(CosineNN.NUM_BLOCKS):
@@ -94,11 +43,6 @@ class CosineNN(object):
 
 
     def query_with_dist(self, iid):
-        """
-        Returns a set of (id,cosdist) to potential neighbours of object with id
-        `iid'. Does NOT return iid as one of the results.
-        Slower than query() because it computes all the cosines.
-        """
         maybe_neighbours = self.query(iid)
         with_dist = [(niid, self.cosine_dist_between(iid, niid))
                      for niid in maybe_neighbours if niid != iid]
@@ -116,43 +60,45 @@ class CosineNN(object):
         return num
 
     def cosine_dist_between(self, iid1, iid2):
-        """
-        Calculates exact cosine DISTANCE i.e. 1 - cosine similarity between
-        items with IDs iid1, iid2.
-        """
         # Requires .todense() or else 'dimension missmatch'
         return scipy.spatial.distance.cosine(self.col_vecs[iid1].todense(),
                                              self.col_vecs[iid2].todense())
 
 
 def extract_block(sig, block_num):
-    """
-    Extract the block_numth block of binary bits (starting from the left) from
-    the integer sig and return result as int.
-    Shift the sig right until the last BLOCK_SIZE bits are the block, then take
-    off the bits before the block.
-    >>> CosineNN.BLOCK_SIZE = 3
-    >>> extract_block(0b111010110, 0) ==  0b110
-    True
-    >>> extract_block(0b111010110, 1) == 0b010
-    True
-    >>> extract_block(0b111010110, 2) == 0b111
-    True
-    """
     return (sig >> (block_num*CosineNN.BLOCK_SIZE)) % (1 << CosineNN.BLOCK_SIZE)
 
+def create_hash_family(vector_len):
+    # CosineNN.SIG_LENGTH * vector_len matrix where each column is a vector
+    # corresponding to a random hyperplane in the family. All entries are in
+    # [-0.5, 0.5).
+    random_vector_family = np.matrix(
+        np.random.rand(CosineNN.SIG_LENGTH, vector_len) - 0.5)
+    filename = open("hash_function.csv", "wb")
+    open_file_object = csv.writer(filename)
+    for vec in random_vector_family:
+        vec = np.array(vec)[0]
+        row = [str(i) for i in vec]
+        open_file_object.writerow(row)
 
+def read_hash_family(filename = "hash_function.csv"):
+    openfile = open(filename)
+    random_vector_family = []
+    for row in openfile:
+        row = row.strip().split(',')
+        floatRow = [float(i) for i in row]
+        random_vector_family.append(floatRow)
+    return np.matrix(random_vector_family)
+        
+    
 if __name__ == '__main__':
-    vec1 = [1,2,3,4,5,6,7,8,9,10]
-    vec2 = [2,2,3,4,5,6,7,8,9,10]
-    vec3 = [10,9,8,7,6,5,4,3,2,1]
-    vec4 = [9,9,8,7,6,5,4,3,2,1]
-    vec1 = np.mat(vec1).T
-    vec2 = np.mat(vec2).T
-    vec3 = np.mat(vec3).T
-    vec4 = np.mat(vec4).T
-    tt = CosineNN(10)
+    vec1 = np.mat(np.random.rand(93)).T
+    vec2 = np.mat(np.random.rand(93)).T
+    vec3 = np.mat(np.random.rand(93)).T
+    vec4 = np.mat(np.random.rand(93)).T
+    tt = CosineNN(93)
     tt.index(1, vec1)
     tt.index(2, vec2)
     tt.index(3, vec3)
     tt.index(4, vec4)
+    
