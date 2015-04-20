@@ -24,6 +24,7 @@ class CosineNN(object):
         """
         # Form the column vector of the utility matrix for m
         sig = self.signature_of(col)
+        
 
         self.signatures[iid] = sig
         self.col_vecs[iid] = col
