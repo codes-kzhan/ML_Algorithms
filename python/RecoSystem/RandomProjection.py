@@ -26,7 +26,7 @@ class LSH(object):
 		self.dims = None
 		self.__trained = False
 		self.__loaded_files = set()
-		self.bins = {}
+		self.bins = {} 
 		self.verbose = False
 	
 	def __nice_time(self, t):
