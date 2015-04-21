@@ -10,7 +10,7 @@ def jaccard(x0, x1):
 	"""x0 and x1 are sets."""
 	return len(x0 & x1) / float(len(x0 | x1))
     
-class LSH(object):
+class LSH(object): 
 	def __init__(self, bands = 100, per_band = 5, assignment_name = "lsh_example"):
         	if type(bands) != int:
 			raise TypeError, "bands must be an integer."
