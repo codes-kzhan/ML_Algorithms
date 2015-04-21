@@ -12,7 +12,7 @@ def jaccard(x0, x1):
     
 class LSH(object):
 	def __init__(self, bands = 100, per_band = 5, assignment_name = "lsh_example"):
-		if type(bands) != int:
+        	if type(bands) != int:
 			raise TypeError, "bands must be an integer."
 		if type(per_band) != int:
 			raise TypeError, "per_band must be an integer."
