@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from cart import *
+from DecisionTree import *
 import random
 
 def loadData(data, y):
