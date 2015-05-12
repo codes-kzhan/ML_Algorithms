@@ -15,7 +15,6 @@ class LogisticRegression:
     batch_size (int): size of each mini-batch
     X (ndarray):  (m, n) dimension data points
     y (ndarray):  n target labels
-    
     References:
     -----------
     http://ufldl.stanford.edu/wiki/index.php/Softmax_Regression
@@ -51,7 +50,6 @@ class LogisticRegression:
         ----------
         X (ndarray):  (m, n) dimension data points
         y (ndarray):  n target labels
-        
         Outputs
         ----------
         use model to fit the dataset
@@ -113,7 +111,6 @@ class LogisticRegression:
         reg (float): regularization parameter to prevent overfitting
         X (ndarray):  (m, n) dimension data points
         lbin (ndarray): a matrix of binarized labels(y)
-        
         Outputs
         ----------
         cost: the cost of the current model
@@ -138,7 +135,6 @@ class LogisticRegression:
         Parameters
         ----------
         X (ndarray):  (m, n) dimension data points
-        
         Outputs
         ----------
         predict (ndarray): the prediction made by model
@@ -165,7 +161,6 @@ class LogisticRegression:
         ----------
         X (ndarray):  (m, n) dimension data points
         y (ndarray):  n target labels
-
         Outputs
         ----------
         score (float): accuracy of the model
