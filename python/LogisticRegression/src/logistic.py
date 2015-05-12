@@ -7,20 +7,14 @@ class LogisticRegression:
     """Logistic regression using sgd optimizer.
     Parameters
     ----------
-    reg: float, default 1e-4
-        regularization parameter to prevent overfitting
-    tolerance: float, default 1e-4
-        early exit for optimizer
-    verbose: boolean, default = True
-        set to false if no debug/progress info is to be displayed.
-    epoch: int, default = 10
-        times of training rounds
-    learning_rate: float, default = 0.1
-        the rate of gradient descent optimization
-    batch_size: int, default = 100
-        the size of each mini-batch
-    X:  npArray of dimensions m training examples x n data points
-    y:  npArray of dimensions m labels x 1, corresponding to data_imput
+    reg (float): regularization parameter to prevent overfitting
+    tolerance (float): early exit for optimizer
+    verbose (boolean): set to false if no debug/progress info is to be displayed.
+    epoch (int): times of training rounds
+    learning_rate (float): rate of gradient descent optimization
+    batch_size (int): size of each mini-batch
+    X (ndarray):  (m, n) dimension data points
+    y (ndarray):  n target labels
     
     References:
     -----------
@@ -45,8 +39,8 @@ class LogisticRegression:
         """The main function, to fit the dataset
         Parameters
         ----------
-        X: npArray of dimensions m training examples x n data points
-        y:  npArray of dimensions m labels x 1, corresponding to data_imput
+        X (ndarray):  (m, n) dimension data points
+        y (ndarray):  n target labels
         
         Outputs
         ----------
@@ -104,11 +98,11 @@ class LogisticRegression:
         """Compute the cost and grad of each mini-batch
         Parameters
         ----------
-        theta_unroll: npArray of current weights
-        num_classes: number of unique classes of labels(y)
-        reg: regularization parameter to prevent overfitting
-        X: npArray of dimensions m training examples x n data points
-        lbin: a matrix of binarized labels(y)
+        theta_unroll (ndarray): current weights
+        num_classes (int): number of unique classes of labels(y)
+        reg (float): regularization parameter to prevent overfitting
+        X (ndarray):  (m, n) dimension data points
+        lbin (ndarray): a matrix of binarized labels(y)
         
         Outputs
         ----------
@@ -133,12 +127,12 @@ class LogisticRegression:
         """Make predictions
         Parameters
         ----------
-        X: npArray of dimensions m training examples x n data points
+        X (ndarray):  (m, n) dimension data points
         
         Outputs
         ----------
-        predict: the prediction made by model
-        prob: the probability prediction
+        predict (ndarray): the prediction made by model
+        prob (ndarray): the probability prediction
         """
         X = check_array(X, accept_sparse='csr', dtype=np.float64, order="C")
         m, k = np.shape(X)
@@ -159,12 +153,12 @@ class LogisticRegression:
         """Compute the accuracy of the model
         Parameters
         ----------
-        X: npArray of dimensions m training examples x n data points
-        y:  npArray of dimensions m labels x 1, corresponding to data_imput
+        X (ndarray):  (m, n) dimension data points
+        y (ndarray):  n target labels
 
         Outputs
         ----------
-        score: accuracy of the model
+        score (float): accuracy of the model
         """
         predict, _ = self.predict(X)
         ret = 0
