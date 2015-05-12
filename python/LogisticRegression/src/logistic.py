@@ -42,6 +42,12 @@ class LogisticRegression:
         self.has_trained_once = False
 
     def train(self, X, y):
+        """The main function, to fit the model
+        Parameters
+        ----------
+        X: npArray of dimensions m training examples x n data points
+        y:  npArray of dimensions m labels x 1, corresponding to data_imput
+        """
         epoch = self.epoch
         reg = self.reg
         alpha = self.alpha
@@ -78,6 +84,9 @@ class LogisticRegression:
         self.theta_unroll = theta
 
     def _initialize_theta(self):
+        """
+        Initialize the theta(the parameters for each feature)
+        """
         if self.has_trained_once == False:
             self.has_trained_once = True
             r = np.sqrt(6.) / np.sqrt(self.num_features + self.num_classes + 1)
@@ -86,7 +95,7 @@ class LogisticRegression:
             self.theta_unroll = np.array(theta_unroll, dtype='float')
 
     def _cost(self, theta_unroll, num_classes, reg, X, lbin):
-        """ The function to compute the cost and grad of each mini-batch
+        """Compute the cost and grad of each mini-batch
         Parameters
         ----------
         theta_unroll: npArray of current weights
@@ -115,7 +124,7 @@ class LogisticRegression:
         return cost, grad
 
     def predict(self, X):
-        """ The function to make prediction
+        """Make predictions
         Parameters
         ----------
         X: npArray of dimensions m training examples x n data points
@@ -123,7 +132,7 @@ class LogisticRegression:
         Outputs
         ----------
         predict: the prediction made by model
-        prob: the probability output
+        prob: the probability prediction
         """
         X = check_array(X, accept_sparse='csr', dtype=np.float64, order="C")
         m, k = np.shape(X)
@@ -141,7 +150,7 @@ class LogisticRegression:
         return predict, prob
 
     def score(self, X, y):
-        """ The function to make prediction
+        """Compute the accuracy of the model
         Parameters
         ----------
         X: npArray of dimensions m training examples x n data points
@@ -149,7 +158,7 @@ class LogisticRegression:
 
         Outputs
         ----------
-        score: the accuracy of the model
+        score: accuracy of the model
         """
         predict, _ = self.predict(X)
         ret = 0
