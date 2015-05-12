@@ -52,7 +52,6 @@ class NN(object):
         Parameters:
         ----------
         x : a list of value of non-zero features
-        
         Outputs:
         ----------
         p (double): a prediction for input features
@@ -92,7 +91,6 @@ class NN(object):
         x : a list of value of non-zero features
         p : predicted output
         y : target output
-        
         Outputs:
         ----------
         updated model weights and counters
