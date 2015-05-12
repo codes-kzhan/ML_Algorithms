@@ -42,11 +42,15 @@ class LogisticRegression:
         self.has_trained_once = False
 
     def train(self, X, y):
-        """The main function, to fit the model
+        """The main function, to fit the dataset
         Parameters
         ----------
         X: npArray of dimensions m training examples x n data points
         y:  npArray of dimensions m labels x 1, corresponding to data_imput
+        
+        Outputs
+        ----------
+        use model to fit the dataset
         """
         epoch = self.epoch
         reg = self.reg
@@ -84,8 +88,10 @@ class LogisticRegression:
         self.theta_unroll = theta
 
     def _initialize_theta(self):
-        """
-        Initialize the theta(the parameters for each feature)
+        """Initialize the model weights
+        Outputs
+        ----------
+        the initial model weights
         """
         if self.has_trained_once == False:
             self.has_trained_once = True
