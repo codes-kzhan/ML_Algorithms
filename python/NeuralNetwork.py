@@ -6,48 +6,56 @@ D = 2 ** 20
 
 # Neural Network withi a single hidden layer online learner
 class NN(object):
+    """Neural Network with a single ReLU hidden layer online learner.
+    Parameters:
+    ----------
+    n (int): number of input units
+    h (int): number of hidden units
+    alpha (float): initial learning rate
+    l1 (float): L1 regularization parameter
+    l2 (float): L2 regularization parameter
+    w0 (list of float): weights between the input and hidden layers
+    w1 (list of float): weights between the hidden and output layers
+    z (list of float): hidden units
+    c (float): counter
+    c0 (list of float): counters for input units
+    c1 (list of float): counters for hidden units
+    """
 
     def __init__(self, n=D, h=50, alpha=0.1, l2=0., seed=0):
-
         """Initialize the NN class object.
-        Args:
-            n (int): number of input units
-            h (int): number of hidden units
-            a (double): initial learning rate
-            l1 (double): L1 regularization parameter
-            l2 (double): L2 regularization parameter
-            seed (unsigned int): random seed
-            interaction (boolean): whether to use 2nd order interaction or not
+        Parameters:
+        ----------
+        n (int): number of input units
+        h (int): number of hidden units
+        alpha (float): initial learning rate
+        l1 (float): L1 regularization parameter
+        l2 (float): L2 regularization parameter
+        seed (unsigned int): random seed
+        interaction (boolean): whether to use 2nd order interaction or not
         """
-        
         rng = np.random.RandomState(seed)
 
         self.n = n
         self.h = h
         self.alpha = alpha
         self.l2 = l2
-        
-        # weights between the hidden and output layers
         self.w1 = (rng.rand(h + 1) - .5) * 1e-7
-        
-        # weights between the input and hidden layers
         self.w0 = (rng.rand((n + 1) * h) - .5) * 1e-7
-
-        # hidden units in the hidden layer
         self.z = np.zeros((h,), dtype=np.float64)
-
-        # counters for biases and inputs
         self.c = 0.
         self.c1 = np.zeros((h,), dtype=np.float64)
         self.c0 = np.zeros((n,), dtype=np.float64)
 
     def predict(self, x):
-        
         """Predict for features.
-        Args:
-            x : a list of value of non-zero features
-        Returns:
-            p (double): a prediction for input features
+        Parameters:
+        ----------
+        x : a list of value of non-zero features
+        
+        Outputs:
+        ----------
+        p (double): a prediction for input features
         """
 
         w0 = self.w0
@@ -78,14 +86,16 @@ class NN(object):
         return 1. / (1. + exp(-max(min(p, 35.), -35.)))
 
     def update(self, x, p, y):
-        
         """Update the model.
-        Args:
-            x : a list of value of non-zero features
-            p : predicted output
-            y : target output
-        Returns:
-            updated model weights and counters
+        Parameters:
+        ----------
+        x : a list of value of non-zero features
+        p : predicted output
+        y : target output
+        
+        Outputs:
+        ----------
+        updated model weights and counters
         """
 
         alpha = self.alpha
