@@ -12,12 +12,30 @@ D = 2 ** 22
 rng = np.random.RandomState(0)
 
 class fact_machine(object):
+    """Factorization Machine online learner.
+    
+    Parameter:
+    ----------
+    n (int): number of features after hashing trick
+    alpha (float): initial learning rate
+    w0 (float): weight for bias
+    k (int): size of factors for interactions
+    c0 (float): counters
+    w (list of float): feature weights
+    c (list of float): counters for weights
+    V (list of float): feature weights for factors
+    D (long): maximum value for hash
+    """
 
     def __init__(self, alpha, D):
-        # parameters
+         """Initialize the FM class object.
+        Parameters:
+        ----------
+        alpha (double): initial learning rate
+        D (long): maximum value for hash
+        """
         self.alpha = alpha
 
-        # weights
         self.w0 = 0.
         self.c0 = 0.
         self.w = [0.] * D
@@ -25,6 +43,15 @@ class fact_machine(object):
         self.v = (rng.rand(D * k) - .5) * 1e-6
 
     def predict(self, x):
+        """Predict for features.
+        Parameters:
+        ----------
+        x (list of int): a list of index of non-zero features
+        
+        Outputs:
+        ----------
+        p (float): prediction for input features
+        """
         # weights
         w0 = self.w0
         w = self.w
@@ -49,6 +76,17 @@ class fact_machine(object):
         return 1. / (1. + exp(-max(min(p, 35.), -35.)))
 
     def update(self, x, p, y):
+        """Update the model.
+        Parameters:
+        ----------
+        x (list of int): a list of index of non-zero features
+        p (float): prediction for input features
+        y (int): value of the target
+        
+        Outputs:
+        ----------
+        updates model weights and counts
+        """
         # parameter
         alpha = self.alpha
 
