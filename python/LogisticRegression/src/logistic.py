@@ -9,7 +9,7 @@ class LogisticRegression:
     ----------
     reg (float): regularization parameter to prevent overfitting
     tolerance (float): early exit for optimizer
-    verbose (boolean): set to false if no debug/progress info is to be displayed.
+    verbose (boolean): set to false if no debug/progress info is to be displayed
     epoch (int): times of training rounds
     learning_rate (float): rate of gradient descent optimization
     batch_size (int): size of each mini-batch
@@ -24,6 +24,16 @@ class LogisticRegression:
     def __init__(self, reg = 0.0001, tolerance = 1e-4,
                  verbose = True, epoch = 20,
                  learning_rate = 0.01, batch_size = 200):
+        """Initialize the LogisticRegression class object.
+        Parameters:
+        ----------
+        reg (float): regularization parameter to prevent overfitting
+        tolerance (float): early exit for optimizer
+        verbose (boolean): set to false if no debug/progress info is to be displayed
+        epoch (int): times of training rounds
+        learning_rate (float): rate of gradient descent optimization
+        batch_size (int): size of each mini-batch
+        """
         self.reg = reg
         self.tolerance = tolerance
         self.alpha = learning_rate
