@@ -16,12 +16,12 @@ class ftrl_proximal(object):
     Parameter:
     ----------
     n (int): number of features after hashing trick
-    alpha (double): alpha in the per-coordinate rate
-    beta (double): beta in the per-coordinate rate
-    l1 (double): L1 regularization parameter
-    l2 (double): L2 regularization parameter
-    w (array of double): feature weights
-    z (array of double): lazy weights
+    alpha (float): alpha in the per-coordinate rate
+    beta (float): beta in the per-coordinate rate
+    l1 (float): L1 regularization parameter
+    l2 (float): L2 regularization parameter
+    w (list of float): feature weights
+    z (list of float): lazy weights
     interaction (boolean): whether to use 2nd order interaction or not
     """
 
@@ -29,10 +29,10 @@ class ftrl_proximal(object):
         """Initialize the FTRL class object.
         Parameters:
         ----------
-        alpha (double): alpha in the per-coordinate rate
-        beta (double): beta in the per-coordinate rate
-        l1 (double): L1 regularization parameter
-        l2 (double): L2 regularization parameter
+        alpha (float): alpha in the per-coordinate rate
+        beta (float): beta in the per-coordinate rate
+        l1 (float): L1 regularization parameter
+        l2 (float): L2 regularization parameter
         n (int): number of features after hashing trick
         interaction (boolean): whether to use 2nd order interaction or not
         """
@@ -78,7 +78,7 @@ class ftrl_proximal(object):
         
         Outputs:
         ----------
-        p (double): prediction for input features
+        p (float): prediction for input features
         """
 
         # parameters
@@ -120,8 +120,8 @@ class ftrl_proximal(object):
         Parameters:
         ----------
         x (list of int): a list of index of non-zero features
-        p (double): prediction for input features
-        y (double): value of the target
+        p (float): prediction for input features
+        y (int): value of the target
         
         Outputs:
         ----------
