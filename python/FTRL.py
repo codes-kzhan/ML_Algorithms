@@ -15,14 +15,15 @@ class ftrl_proximal(object):
     
     Parameter:
     ----------
-    n (int): number of features after hashing trick
     alpha (float): alpha in the per-coordinate rate
     beta (float): beta in the per-coordinate rate
     l1 (float): L1 regularization parameter
     l2 (float): L2 regularization parameter
+    n (list of float): buffer to compute feature weights
     w (list of float): feature weights
     z (list of float): lazy weights
     interaction (boolean): whether to use 2nd order interaction or not
+    D (long): maximum value for hash
     """
 
     def __init__(self, alpha, beta, L1, L2, D, interaction):
@@ -33,7 +34,7 @@ class ftrl_proximal(object):
         beta (float): beta in the per-coordinate rate
         l1 (float): L1 regularization parameter
         l2 (float): L2 regularization parameter
-        n (int): number of features after hashing trick
+        D (long): maximum value for hash
         interaction (boolean): whether to use 2nd order interaction or not
         """
         self.alpha = alpha
