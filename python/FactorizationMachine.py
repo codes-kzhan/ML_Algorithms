@@ -13,7 +13,6 @@ rng = np.random.RandomState(0)
 
 class fact_machine(object):
     """Factorization Machine online learner.
-    
     Parameter:
     ----------
     n (int): number of features after hashing trick
@@ -47,7 +46,6 @@ class fact_machine(object):
         Parameters:
         ----------
         x (list of int): a list of index of non-zero features
-        
         Outputs:
         ----------
         p (float): prediction for input features
@@ -82,7 +80,6 @@ class fact_machine(object):
         x (list of int): a list of index of non-zero features
         p (float): prediction for input features
         y (int): value of the target
-        
         Outputs:
         ----------
         updates model weights and counts
