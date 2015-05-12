@@ -11,22 +11,41 @@ D = 2 ** 24           # number of weights to use
 interaction = False     # whether to enable poly2 feature interactions
 
 class ftrl_proximal(object):
+    """FTRL online learner with the hasing trick using liblinear format data.
+    
+    Parameter:
+    ----------
+    n (int): number of features after hashing trick
+    alpha (double): alpha in the per-coordinate rate
+    beta (double): beta in the per-coordinate rate
+    l1 (double): L1 regularization parameter
+    l2 (double): L2 regularization parameter
+    w (array of double): feature weights
+    z (array of double): lazy weights
+    interaction (boolean): whether to use 2nd order interaction or not
+    """
 
     def __init__(self, alpha, beta, L1, L2, D, interaction):
-        # parameters
+        """Initialize the FTRL class object.
+        Parameters:
+        ----------
+        alpha (double): alpha in the per-coordinate rate
+        beta (double): beta in the per-coordinate rate
+        l1 (double): L1 regularization parameter
+        l2 (double): L2 regularization parameter
+        n (int): number of features after hashing trick
+        interaction (boolean): whether to use 2nd order interaction or not
+        """
         self.alpha = alpha
         self.beta = beta
         self.L1 = L1
         self.L2 = L2
 
-        # feature related parameters
+        # Feature related parameters
         self.D = D
         self.interaction = interaction
-
-        # model
-        # n: squared sum of past gradients
-        # z: weights
-        # w: lazy weights
+        
+        # initialize weights
         self.n = [0.] * D
         self.z = [0.] * D
         self.w = {}
@@ -52,6 +71,15 @@ class ftrl_proximal(object):
                     yield int(hash(str(x[i]) + '_' + str(x[j]))) % D
 
     def predict(self, x):
+        """Predict for features.
+        Parameters:
+        ----------
+        x (list of int): a list of index of non-zero features
+        
+        Outputs:
+        ----------
+        p (double): prediction for input features
+        """
 
         # parameters
         alpha = self.alpha
@@ -88,6 +116,17 @@ class ftrl_proximal(object):
         return 1. / (1. + exp(-max(min(wTx, 35.), -35.)))
 
     def update(self, x, p, y):
+        """Update the model.
+        Parameters:
+        ----------
+        x (list of int): a list of index of non-zero features
+        p (double): prediction for input features
+        y (double): value of the target
+        
+        Outputs:
+        ----------
+        updates model weights and counts
+        """
 
         # parameter
         alpha = self.alpha
