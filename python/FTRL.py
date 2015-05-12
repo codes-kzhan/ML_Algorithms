@@ -13,7 +13,7 @@ interaction = False     # whether to enable poly2 feature interactions
 class ftrl_proximal(object):
     """FTRL online learner with the hasing trick using liblinear format data.
     
-    Parameter:
+    Parameters:
     ----------
     alpha (float): alpha in the per-coordinate rate
     beta (float): beta in the per-coordinate rate
