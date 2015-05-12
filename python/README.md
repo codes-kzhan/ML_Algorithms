@@ -1,1 +1,1 @@
-The python implementations of machine learning algorithms
+Python implementations of machine learning algorithms
