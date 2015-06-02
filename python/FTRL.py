@@ -23,6 +23,9 @@ class ftrl_proximal(object):
     z (list of float): lazy weights
     interaction (boolean): whether to use 2nd order interaction or not
     D (long): maximum value for hash
+    Reference:
+    ----------
+    http://www.eecs.tufts.edu/~dsculley/papers/ad-click-prediction.pdf
     """
 
     def __init__(self, alpha, beta, L1, L2, D, interaction):
