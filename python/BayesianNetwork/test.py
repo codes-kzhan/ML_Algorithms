@@ -1,16 +1,6 @@
 import numpy as np
 from BayesianNetwork import BayesianNetwork
-
-
-def complete_bin(number):
-    bit = bin(number)[2:]
-    number_of_zero = 12 - len(bit)
-    return number_of_zero * '0' + bit
-
-
-def compute_accuracy(pred, joint_probs):
-    probs = np.array(map(lambda x: float(x), joint_probs[:,1]))
-    return abs(pred - probs).sum()
+from utils import *
 
      
 joint_probs = [i.strip().split('\t') for i in open('joint.dat')]
@@ -66,7 +56,12 @@ feature_list = ['HasFever', 'Vomits', 'IsFatigues', 'Coughs', 'HasRash',
                 'HasGastricProblems', 'HasRespiratoryProblems', 'HasPneumonia',
                 'HasHayFever', 'HasFoodPoisoning', 'HasFlu', 'IsSummer']
 
-model = BayesianNetwork(baseline_settings, feature_list)
+model = BayesianNetwork(settings2, feature_list)
 model.fit(data)
-prediction = model.predict(joint_probs)
-score = compute_accuracy(prediction, joint_probs)
+pred_table = model.predict(joint_probs)
+score = compute_accuracy(pred_table, joint_probs)
+
+query1 = query_from_table('HasFlu', feature_list, joint_probs, ('HasFever', True), ('Coughs', True))
+pred_query1 = query_from_table('HasFlu', feature_list, pred_table, ('HasFever', True), ('Coughs', True))
+query2 = query_from_table('Vomits', feature_list, joint_probs, ('IsSummer', True))
+pred_query2 = query_from_table('Vomits', feature_list, pred_table, ('IsSummer', True))
